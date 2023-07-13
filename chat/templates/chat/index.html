@@ -3,21 +3,31 @@
 <head>
     <meta charset="utf-8"/>
     <title>Chat Rooms</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css" />
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css" />
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 </head>
 <body>
+    {% for room in chat_rooms %}
+    <h3>Room {{ forloop.counter }}: <a href="{% url 'chat:room' room.room_name %}">{{ room.room_name }}</a></h3>
+    {% endfor %}
+    <hr>
     What chat room would you like to enter?<br>
-    <input id="room-name-input" type="text" size="100"><br>
-    <input id="room-name-submit" type="button" value="Enter">
+    <input class="form-inline" id="room-name-input" type="text" size="100">
+    <input class="btn btn-primary" id="room-name-submit" type="button" value="Enter">
+    <hr>
+    <a class="btn btn-danger" href="{% url 'chat:logout' %}?next={{ request.path }}">LogOut</a>
 
     <script>
         document.querySelector('#room-name-input').focus();
-        document.querySelector('#room-name-input').onkeyup = function(e) {
+        document.querySelector('#room-name-input').onkeyup = function (e) {
             if (e.keyCode === 13) {  // enter, return
                 document.querySelector('#room-name-submit').click();
             }
         };
 
-        document.querySelector('#room-name-submit').onclick = function(e) {
+        document.querySelector('#room-name-submit').onclick = function (e) {
             var roomName = document.querySelector('#room-name-input').value;
             window.location.pathname = '/chat/' + roomName + '/';
         };

@@ -1,18 +1,67 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8"/>
     <title>Chat Room</title>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,300" rel="stylesheet" type="text/css" />
+    <script src="https://use.typekit.net/hoy3lrg.js"></script>
+    <script>
+      try {
+        Typekit.load({ async: true });
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet prefetch" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" />
+    <link rel="stylesheet prefetch" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.2/css/font-awesome.min.css" />
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css" />
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css" />
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
 </head>
+
 <body>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
+    <div id="frame">
+        <div class="content">
+            <div class="contact-profile">
+            <img src="{% static 'my-avatar.png' %}" alt="" />
+            <p>{{ request.user.username }}</p>
+            <div class="social-media">
+                <p style="margin-right: 20px;">CHAT ROOM</p>
+                <a href="{% url 'chat:index' %}"><i class="fa fa-reply"></i></a>
+            </div>
+            </div>
+            <div class="messages">
+            <ul id="chat-log">
+            </ul>
+            </div>
+            <div class="message-input">
+            <div class="wrap">
+                <input id="chat-message-input" type="text" placeholder="Write your message..." />
+                <i class="fa fa-paperclip attachment" aria-hidden="true" onclick="document.getElementById('inp').click();"></i>
+
+                <button id="chat-message-submit" class="submit">
+                <i class="fa fa-paper-plane" aria-hidden="true"></i>
+                </button>
+            </div>
+            </div>
+        </div>
+    </div>
+    <input id="inp" type='file' style="display:none" >
+    <p id="b64"></p>
+
+
     <script src="{% static 'reconnecting-websocket.js' %}"></script>
+
     {{ room_name|json_script:"room-name" }}
+
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+        var username = {{ username }}
 
         const chatSocket = new ReconnectingWebSocket(
             'ws://'
@@ -22,9 +71,24 @@
             + '/'
         );
 
+        chatSocket.onopen = function(e) {
+            chatSocket.send(JSON.stringify({
+                'command': 'fetch_message',
+                'room_name': roomName
+            }));
+        }
+
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
+
+            if (data['command'] == 'fetch_message'){
+                for (let i=data['message'].length-1; i>=0; i--){
+                    createMessage(data['message'][i]);
+                }
+            } else {
+                createMessage(data)
+            }
+
         };
 
         chatSocket.onclose = function(e) {
@@ -42,10 +106,31 @@
             const messageInputDom = document.querySelector('#chat-message-input');
             const message = messageInputDom.value;
             chatSocket.send(JSON.stringify({
-                'message': message
+                'message': message,
+                'command': 'new_message',
+                'username': username,
+                'room_name': roomName
             }));
             messageInputDom.value = '';
         };
+
+        function createMessage(data){
+            var author = data['__str__'];
+            var msgListTag = document.createElement('li');
+            var imgTag = document.createElement('img');
+            var pTag = document.createElement('p');
+            pTag.textContent = data.content;
+            imgTag.src = '';
+
+            if (author == username){
+                msgListTag.className == 'sent';
+            } else {
+                msgListTag.className == 'replies';
+            }
+            msgListTag.appendChild(pTag);
+            document.querySelector('#chat-log').appendChild(msgListTag);
+        }
     </script>
 </body>
+
 </html>

@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'daphne',  # Third party
     'django.contrib.staticfiles',
     'chat.apps.ChatConfig',  # Apps
+    'rest_framework',  # Third party
 ]
 
 MIDDLEWARE = [
@@ -81,6 +82,8 @@ DATABASES = {
 }
 
 # Password validation
+
+LOGIN_URL = '/login'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
