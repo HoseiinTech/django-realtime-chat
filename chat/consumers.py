@@ -34,6 +34,15 @@ class ChatConsumer(WebsocketConsumer):
         }
         self.chat_message(content)  # call chat_message and forward content to it
 
+    def send_image(self, data):
+        content = data['content']
+        username = data['__str__']
+        room_name = data['room_name']
+        chat = ChatRoom.objects.get(room_name=room_name)
+        author = User.objects.get(username=username)
+        message = Message.objects.create(content=content, author=author, chat=chat)
+        self.send_message(data)
+
     def message_serializer(self, query):
         serializer = MessageSerializer(query,
                                        many=(lambda query: True if (query.__class__.__name__ == 'QuerySet') else False)(
@@ -54,7 +63,8 @@ class ChatConsumer(WebsocketConsumer):
 
     commands = {
         'new_message': new_message,
-        'fetch_message': fetch_message
+        'fetch_message': fetch_message,
+        'send_image': send_image
     }
 
     def disconnect(self, code):
@@ -72,13 +82,14 @@ class ChatConsumer(WebsocketConsumer):
         self.commands[command](self, text_to_dict)
 
     def send_message(self, message):
+        command = message.get('command', None)
         # Send message to room group  -->  Create an event and send to 'chat_message' function
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
                 "type": "chat_message",
                 "content": message['content'],
-                "command": "new_message",
+                "command": (lambda command: "send_image" if (command == 'send_image') else "new_message")(command),
                 "__str__": message['__str__']
             }  # Dict is an event with 'message' key!
         )
