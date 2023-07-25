@@ -14,7 +14,7 @@ docker run -p 6379:6379 --name redis-chat redis
 ##### 3 - Create database and table
 ```bash
 python manage.py makemigrations
-python manage.py migrate --sync-db
+python manage.py migrate --run-syncdb
 ```
 
 ##### 4 - Go to ```localhost/``` and log in, then enter any room_name to join it.
