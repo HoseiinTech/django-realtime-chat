@@ -22,3 +22,5 @@ python manage.py migrate --sync-db
 ---
 
 **You can test this chat-app between two user and chat with each other and even send photos**!
+---
+Buy me a coffee!☕ [CLICK](https://www.coffeete.ir/hoseiintech)
